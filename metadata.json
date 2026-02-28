@@ -1,0 +1,8 @@
+
+{
+  "name": "SmartInvoice AI",
+  "description": "An intelligent invoice generator that learns from your previous invoices to automate billing and record-keeping using Gemini's vision and reasoning capabilities.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

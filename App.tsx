@@ -1,101 +1,43 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { InvoiceData, EMPTY_INVOICE } from './types';
-import { extractInvoiceFromImage } from './services/geminiService';
 import InvoiceForm from './components/InvoiceForm';
 import InvoicePreview from './components/InvoicePreview';
-
-const SUPPORTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf'];
 
 const App: React.FC = () => {
   const [currentInvoice, setCurrentInvoice] = useState<InvoiceData>(EMPTY_INVOICE);
   const [history, setHistory] = useState<InvoiceData[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<'editor' | 'history'>('editor');
-  
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('invoice_history');
     if (saved) setHistory(JSON.parse(saved));
     
-    const lastNum = localStorage.getItem('last_invoice_number');
-    if (!lastNum) {
-      localStorage.setItem('last_invoice_number', '114');
-    }
+    localStorage.setItem('last_invoice_number', '114');
   }, []);
 
-  const saveToHistory = () => {
-    const newHistory = [currentInvoice, ...history].slice(0, 50);
+  const persistHistory = (newHistory: InvoiceData[]) => {
     setHistory(newHistory);
     localStorage.setItem('invoice_history', JSON.stringify(newHistory));
+  };
+
+  const saveToHistory = () => {
+    const filtered = history.filter(h => h.invoiceNumber !== currentInvoice.invoiceNumber);
+    persistHistory([currentInvoice, ...filtered].slice(0, 50));
     alert('Invoice saved to history!');
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Local validation to prevent "application/x-zip-compressed" errors or other unsupported types
-    if (!SUPPORTED_TYPES.includes(file.type)) {
-      setError(`Unsupported file type: ${file.type || 'unknown'}. Please upload a JPG, PNG, WEBP, or PDF.`);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      return;
-    }
-
-    setIsProcessing(true);
-    setError(null);
-
-    try {
-      const reader = new FileReader();
-      reader.onerror = () => {
-        setError("Failed to read the file. It might be corrupted.");
-        setIsProcessing(false);
-      };
-      
-      reader.onload = async () => {
-        try {
-          const base64 = reader.result as string;
-          const extracted = await extractInvoiceFromImage(base64, file.type);
-          
-          // Merge with defaults
-          const merged: InvoiceData = {
-            ...EMPTY_INVOICE,
-            ...extracted,
-            // Ensure unique IDs for items
-            items: (extracted.items || []).map((item: any) => ({
-              ...item,
-              id: Math.random().toString(36).substr(2, 9)
-            })),
-            // Use extracted dates or default to current
-            date: extracted.date || EMPTY_INVOICE.date,
-            dueDate: extracted.dueDate || EMPTY_INVOICE.dueDate,
-          } as InvoiceData;
-
-          // If no items were extracted, keep the default one
-          if (merged.items.length === 0) {
-            merged.items = EMPTY_INVOICE.items;
-          }
-
-          setCurrentInvoice(merged);
-        } catch (err: any) {
-          setError(err.message || 'Failed to process invoice data.');
-        } finally {
-          setIsProcessing(false);
-          if (fileInputRef.current) fileInputRef.current.value = '';
-        }
-      };
-      reader.readAsDataURL(file);
-    } catch (err: any) {
-      setError("An unexpected error occurred during file upload.");
-      setIsProcessing(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
+  const deleteFromHistory = (idx: number) => {
+    persistHistory(history.filter((_, i) => i !== idx));
   };
 
   const handlePrint = () => {
+    const filtered = history.filter(h => h.invoiceNumber !== currentInvoice.invoiceNumber);
+    persistHistory([currentInvoice, ...filtered].slice(0, 50));
+    const prev = document.title;
+    document.title = `${currentInvoice.clientName || 'Invoice'} - ${currentInvoice.invoiceNumber}`.trim();
     window.print();
+    document.title = prev;
   };
 
   return (
@@ -134,62 +76,21 @@ const App: React.FC = () => {
       <main className="flex-grow container mx-auto px-4 py-8 max-w-7xl">
         {view === 'editor' ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left: Editor & Upload */}
+            {/* Left: Editor */}
             <div className="no-print space-y-6">
-              <div className="bg-indigo-600 rounded-xl p-8 text-white shadow-lg overflow-hidden relative">
-                <div className="relative z-10">
-                  <h2 className="text-2xl font-bold mb-2">Create from AI Scan</h2>
-                  <p className="text-indigo-100 mb-6">Upload a previous invoice and Gemini will automatically extract all data to pre-fill this form.</p>
-                  
-                  <div className="flex flex-wrap gap-3">
-                    <button 
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isProcessing}
-                      className="bg-white text-indigo-600 px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-indigo-50 transition disabled:opacity-50"
-                    >
-                      {isProcessing ? (
-                        <div className="animate-spin w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full" />
-                      ) : (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                      )}
-                      {isProcessing ? 'Reading Invoice...' : 'Scan Old Invoice'}
-                    </button>
-                    <button 
-                      onClick={() => {
-                        const lastNum = parseInt(localStorage.getItem('last_invoice_number') || '114');
-                        const nextNum = lastNum + 1;
-                        localStorage.setItem('last_invoice_number', nextNum.toString());
-                        setCurrentInvoice({ ...EMPTY_INVOICE, invoiceNumber: `${nextNum}` });
-                        setError(null);
-                      }}
-                      className="bg-indigo-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-indigo-400 transition"
-                    >
-                      Start New
-                    </button>
-                  </div>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    className="hidden" 
-                    accept=".jpg,.jpeg,.png,.webp,.pdf"
-                    onChange={handleFileUpload}
-                  />
-                </div>
-                {/* Decorative blob */}
-                <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-indigo-400 rounded-full opacity-20 blur-3xl"></div>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => {
+                    const lastNum = parseInt(localStorage.getItem('last_invoice_number') || '114');
+                    const nextNum = lastNum + 1;
+                    localStorage.setItem('last_invoice_number', nextNum.toString());
+                    setCurrentInvoice({ ...EMPTY_INVOICE, invoiceNumber: `${nextNum}` });
+                  }}
+                  className="bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-indigo-700 transition"
+                >
+                  + Start New Invoice
+                </button>
               </div>
-
-              {error && (
-                <div className="bg-red-50 border-l-4 border-red-500 p-4 text-red-700 flex items-start gap-3 rounded-md shadow-sm">
-                  <svg className="w-5 h-5 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                  <div className="text-sm">{error}</div>
-                </div>
-              )}
 
               <InvoiceForm data={currentInvoice} onChange={setCurrentInvoice} />
             </div>
@@ -251,7 +152,17 @@ const App: React.FC = () => {
                   >
                     <div className="flex justify-between items-start mb-4">
                       <div className="text-sm font-bold text-indigo-600">#{inv.invoiceNumber}</div>
-                      <div className="text-xs text-gray-400 font-medium uppercase">{inv.date}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-xs text-gray-400 font-medium uppercase">{inv.date}</div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); deleteFromHistory(idx); }}
+                          className="text-gray-300 hover:text-red-500 transition"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                     <div className="mb-4">
                       <div className="text-gray-900 font-bold text-lg leading-tight group-hover:text-indigo-600 transition">{inv.clientName || 'Unknown Client'}</div>
@@ -262,8 +173,9 @@ const App: React.FC = () => {
                         {inv.items.length} {inv.items.length === 1 ? 'item' : 'items'}
                       </div>
                       <div className="text-xl font-bold text-gray-900">
-                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: inv.currency }).format(
-                          inv.items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0) * (1 + (inv.taxRate/100))
+                        {new Intl.NumberFormat(inv.currency === 'USD' ? 'en-US' : 'en-IN', { style: 'currency', currency: inv.currency || 'INR' }).format(
+                          inv.items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0) +
+                          inv.items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0) * ((inv.cgstRate + inv.sgstRate + inv.igstRate) / 100)
                         )}
                       </div>
                     </div>

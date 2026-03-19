@@ -4,13 +4,15 @@ export interface InvoiceItem {
   description: string;
   hsnCode?: string;
   quantity: number;
+  unit?: string;
   unitPrice: number;
 }
 
 export interface InvoiceData {
   invoiceNumber: string;
   date: string;
-  dueDate: string;
+  transportMode: string;
+  grrrpr: string;
   
   // Vendor Info
   vendorName: string;
@@ -24,6 +26,8 @@ export interface InvoiceData {
   clientAddress: string;
   clientEmail: string;
   clientGstin: string;
+  clientState: string;
+  clientStateCode: string;
   
   // Items
   items: InvoiceItem[];
@@ -53,7 +57,6 @@ export interface AppState {
 export const EMPTY_INVOICE: InvoiceData = {
   invoiceNumber: ``,
   date: new Date().toISOString().split('T')[0],
-  dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   vendorName: 'STAR LIFT AND CONTROLLER',
   vendorAddress: 'A-437 POCKET 00 SECTOR 2 ROHINI',
   vendorEmail: 'sanjeevkumar9868@gmail.com',
@@ -63,8 +66,12 @@ export const EMPTY_INVOICE: InvoiceData = {
   clientAddress: '',
   clientEmail: '',
   clientGstin: '',
+  clientState: 'Delhi',
+  clientStateCode: '07',
+  transportMode: '',
+  grrrpr: '',
   items: [
-    { id: '1', description: 'Annual Maintenance Contract for Elevator', hsnCode: '', quantity: 1, unitPrice: 0 }
+    { id: '1', description: 'Annual Maintenance Contract for Elevator', hsnCode: '', quantity: 1, unit: '', unitPrice: 0 }
   ],
   pan: 'ATQPK4160N',
   bankName: 'KOTAK MAHINDRA BANK',
@@ -73,6 +80,6 @@ export const EMPTY_INVOICE: InvoiceData = {
   cgstRate: 9,
   sgstRate: 9,
   igstRate: 0,
-  notes: 'Goods once sold will not take back. Subject to Delhi jurisdiction.',
+  notes: 'Goods once sold will not take back.\nSubject to Delhi jurisdiction.',
   currency: 'INR'
 };

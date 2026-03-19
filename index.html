@@ -22,24 +22,40 @@
             .print-only {
                 display: block !important;
             }
-            body {
+            html, body, #root {
                 background: white;
                 margin: 0;
                 padding: 0;
             }
+            .min-h-screen, main, .container, .flex-col {
+                min-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                max-width: none !important;
+            }
             @page {
-                size: A4;
-                margin: 0;
+                size: A4 portrait;
+                margin: 15mm 10mm 15mm 10mm;
             }
             #printable-invoice {
-                min-height: 297mm !important;
-                max-height: 297mm !important;
-                max-width: 210mm !important;
+                width: 100% !important;
+                height: 257mm !important;
                 margin: 0 !important;
-                padding: 8mm !important;
-                page-break-after: avoid;
-                page-break-inside: avoid;
-                overflow: hidden;
+                padding: 0 !important;
+                border: 1px solid black !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                overflow: hidden !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            #printable-invoice .items-wrapper {
+                flex: 1 1 auto !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            #printable-invoice .items-spacer {
+                flex: 1 1 auto !important;
             }
         }
     </style>
@@ -53,7 +69,6 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
 <body>
     <div id="root"></div>

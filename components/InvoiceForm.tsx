@@ -78,13 +78,34 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
     }
   };
 
+  const updateJurisdiction = (notes: string, stateName: string) => {
+    const newLine = `Subject to ${stateName} jurisdiction.`;
+    const lines = notes.split('\n').filter(l => !/subject to .* jurisdiction/i.test(l));
+    return [...lines, newLine].join('\n');
+  };
+
+  const handleVendorGstin = (gstin: string) => {
+    const prefix = gstin.slice(0, 2);
+    const match = GSTIN_STATE_MAP[prefix];
+    const newNotes = match ? updateJurisdiction(data.notes, match.state) : data.notes;
+    onChange({ ...data, vendorGstin: gstin, notes: newNotes });
+  };
+
   const handleClientGstin = (gstin: string) => {
     const prefix = gstin.slice(0, 2);
     const match = GSTIN_STATE_MAP[prefix];
+    const vendorPrefix = data.vendorGstin.slice(0, 2);
+    const isInterState = match && prefix !== vendorPrefix;
+    const taxRate = data.cgstRate + data.sgstRate || data.igstRate || 18;
     onChange({
       ...data,
       clientGstin: gstin,
       ...(match ? { clientState: match.state, clientStateCode: match.code } : {}),
+      ...(match ? (
+        isInterState
+          ? { cgstRate: 0, sgstRate: 0, igstRate: taxRate }
+          : { cgstRate: taxRate / 2, sgstRate: taxRate / 2, igstRate: 0 }
+      ) : {}),
     });
   };
 
@@ -147,7 +168,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
           <input type="text" placeholder="Vendor Name" value={data.vendorName} onChange={(e) => updateField('vendorName', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-md font-medium" />
           <textarea placeholder="Vendor Address" value={data.vendorAddress} onChange={(e) => updateField('vendorAddress', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-md h-20 text-sm" />
           <div className="grid grid-cols-2 gap-4">
-            <input type="text" placeholder="Vendor GSTIN" value={data.vendorGstin} onChange={(e) => updateField('vendorGstin', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm" />
+            <input type="text" placeholder="Vendor GSTIN" value={data.vendorGstin} onChange={(e) => handleVendorGstin(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm" />
             <input type="text" placeholder="Vendor PAN" value={data.pan} onChange={(e) => updateField('pan', e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm" />
           </div>
         </div>

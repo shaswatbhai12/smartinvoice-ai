@@ -24,3 +24,9 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Python scripts with credentials
+make.py
+gemini.py
+__pycache__/
+*.py

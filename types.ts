@@ -9,6 +9,7 @@ export interface InvoiceItem {
 }
 
 export interface InvoiceData {
+  vendorProfileId?: string;
   invoiceNumber: string;
   date: string;
   transportMode: string;
@@ -20,6 +21,7 @@ export interface InvoiceData {
   vendorEmail: string;
   vendorPhone: string;
   vendorGstin: string;
+  dealsIn: string;
   
   // Client Info
   clientName: string;
@@ -55,31 +57,32 @@ export interface AppState {
 }
 
 export const EMPTY_INVOICE: InvoiceData = {
-  invoiceNumber: ``,
+  invoiceNumber: '',
   date: new Date().toISOString().split('T')[0],
-  vendorName: 'STAR LIFT AND CONTROLLER',
-  vendorAddress: 'A-437 POCKET 00 SECTOR 2 ROHINI',
-  vendorEmail: 'sanjeevkumar9868@gmail.com',
-  vendorPhone: '9625075388, 9868051925',
-  vendorGstin: '07ATQPK4160N1Z4',
+  vendorName: '',
+  vendorAddress: '',
+  vendorEmail: '',
+  vendorPhone: '',
+  vendorGstin: '',
+  dealsIn: '',
   clientName: '',
   clientAddress: '',
   clientEmail: '',
   clientGstin: '',
-  clientState: 'Delhi',
-  clientStateCode: '07',
+  clientState: '',
+  clientStateCode: '',
   transportMode: '',
   grrrpr: '',
   items: [
-    { id: '1', description: 'Annual Maintenance Contract for Elevator', hsnCode: '', quantity: 1, unit: '', unitPrice: 0 }
+    { id: '1', description: '', hsnCode: '', quantity: 1, unit: '', unitPrice: 0 }
   ],
-  pan: 'ATQPK4160N',
-  bankName: 'KOTAK MAHINDRA BANK',
-  bankAccount: '9868051925',
-  bankIfsc: 'KKBK0004601',
+  pan: '',
+  bankName: '',
+  bankAccount: '',
+  bankIfsc: '',
   cgstRate: 9,
   sgstRate: 9,
   igstRate: 0,
-  notes: 'Goods once sold will not take back.\nSubject to Delhi jurisdiction.',
+  notes: 'Goods once sold will not take back.',
   currency: 'INR'
 };

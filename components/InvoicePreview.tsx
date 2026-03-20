@@ -43,8 +43,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
       <div className="grid grid-cols-[1.2fr_1fr] border-b border-black">
         <div className="px-3 py-2 border-r border-black">
           <h1 className="text-red-600 font-black text-[18px] leading-tight whitespace-nowrap">{data.vendorName}</h1>
-          <p className="text-[11px] mt-1">Deals in: New Elevator Installation Modification Repair</p>
-          <p className="text-[11px]">Maintenance All Type Elevator Part, Service, &amp; AMC</p>
+          {data.dealsIn && <p className="text-[11px] mt-1">Deals in: {data.dealsIn}</p>}
         </div>
         <div className="px-3 py-2 flex flex-col justify-center space-y-1">
           <p className="font-bold text-[11px]">{data.vendorAddress}</p>

@@ -46,15 +46,15 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
           {data.dealsIn && <p className="text-[11px] mt-1">Deals in: {data.dealsIn}</p>}
         </div>
         <div className="px-3 py-2 flex flex-col justify-center space-y-1">
-          <p className="font-bold text-[11px]">{data.vendorAddress}</p>
-          <p className="font-bold text-[11px]">Ph. No. – {data.vendorPhone}</p>
-          <p className="font-bold text-[11px]">Email- <span className="text-blue-600 underline">{data.vendorEmail}</span></p>
+          <p className="font-bold text-[11px]" style={{ marginLeft: '10px' }}>{data.vendorAddress}</p>
+          <p className="font-bold text-[11px]" style={{ marginLeft: '10px' }}>Ph. No. – {data.vendorPhone}</p>
+          <p className="font-bold text-[11px]" style={{ marginLeft: '10px' }}>Email- <span className="text-blue-600 underline">{data.vendorEmail}</span></p>
         </div>
       </div>
 
       {/* Row 3: Billed To header + Tax reverse charge */}
       <div className="grid grid-cols-[1.2fr_1fr] border-b border-black">
-        <div className="px-3 py-1.5 border-r border-black font-bold text-[12px] text-center">
+        <div className="px-3 py-1.5 border-r border-black font-bold text-[15px] text-center">
           Details of receiver (Billed To)
         </div>
         <div className="px-3 py-1.5 font-bold text-[11px]">
@@ -69,37 +69,37 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
           <div className="px-3 py-2 space-y-2 border-b border-black">
             <div className="flex gap-2">
               <span className="font-bold text-[13px] w-28 shrink-0">Company Name</span>
-              <span className="text-[13px] border-b border-dotted border-black flex-grow">{data.clientName}</span>
+              <span className="text-[18px] border-b border-dotted border-black flex-grow ">{data.clientName}</span>
             </div>
             <div className="flex gap-2">
               <span className="font-bold text-[13px] w-28 shrink-0">Address</span>
-              <span className="text-[13px] border-b border-dotted border-black flex-grow min-h-[18px]">{data.clientAddress}</span>
+              <span className="text-[16px] border-b border-dotted border-black flex-grow min-h-[18px]">{data.clientAddress}</span>
             </div>
           </div>
           {/* GSTIN row */}
           <div className="flex gap-2 px-3 py-1 border-b border-black">
             <span className="font-bold text-[11px] shrink-0">GSTIN –</span>
-            <span className="text-[11px] border-b border-dotted border-black flex-grow">{data.clientGstin}</span>
+            <span className="text-[15px] border-b border-dotted border-black flex-grow">{data.clientGstin}</span>
           </div>
           {/* State + State Code row */}
           <div className="flex px-3 py-1">
             <div className="flex gap-2 flex-1 border-r border-black pr-3">
               <span className="font-bold text-[11px] shrink-0">State –</span>
-              <span className="text-[11px] border-b border-dotted border-black flex-grow">{data.clientState}</span>
+              <span className="text-[15px] border-b border-dotted border-black flex-grow">{data.clientState}</span>
             </div>
             <div className="flex gap-2 flex-1 pl-3">
               <span className="font-bold text-[11px] shrink-0">State Code -</span>
-              <span className="text-[11px] border-b border-dotted border-black flex-grow">{data.clientStateCode}</span>
+              <span className="text-[15px] border-b border-dotted border-black flex-grow">{data.clientStateCode}</span>
             </div>
           </div>
         </div>
-        <div className="px-3 py-2 space-y-0 text-[11px] flex flex-col justify-between">
-          <div className="flex gap-2"><span className="font-bold w-36 shrink-0">INVOICE SERIAL NO.</span><span>- {data.invoiceNumber}</span></div>
-          <div className="flex gap-2"><span className="font-bold w-36 shrink-0">INVOICE DATE</span><span>- {formatDate(data.date)}</span></div>
-          <div className="flex gap-2"><span className="font-bold w-36 shrink-0">Transportation mode</span><span>- {data.transportMode}</span></div>
-          <div className="flex gap-2"><span className="font-bold w-36 shrink-0">GR/RR/PR No.</span><span className="border-b border-dotted border-black flex-grow">{data.grrrpr}</span></div>
-          <div className="flex gap-2"><span className="font-bold w-36 shrink-0">Date of Supply</span><span className="border-b border-dotted border-black flex-grow"></span></div>
-          <div className="flex gap-2"><span className="font-bold w-36 shrink-0">Place of Supply.</span><span></span></div>
+        <div className="pr-4 py-2 text-[11px] flex flex-col justify-center gap-1" style={{ paddingLeft: '24px' }}>
+          <div className="flex gap-2 leading-tight" style={{ marginLeft: '10px' }}><span className="font-bold w-36 shrink-0">INVOICE SERIAL NO.</span><span className="text-[13px]">- {data.invoiceNumber}</span></div>
+          <div className="flex gap-2 leading-tight" style={{ marginLeft: '10px' }}><span className="font-bold w-36 shrink-0">INVOICE DATE</span><span className="text-[13px]">- {formatDate(data.date)}</span></div>
+          <div className="flex gap-2 leading-tight" style={{ marginLeft: '10px' }}><span className="font-bold w-36 shrink-0">Transportation mode</span><span>- {data.transportMode}</span></div>
+          <div className="flex gap-2 leading-tight" style={{ marginLeft: '10px' }}><span className="font-bold w-36 shrink-0">GR/RR/PR No.</span><span className="border-b border-dotted border-black flex-grow">{data.grrrpr}</span></div>
+          <div className="flex gap-2 leading-tight" style={{ marginLeft: '10px' }}><span className="font-bold w-36 shrink-0">Date of Supply</span><span className="border-b border-dotted border-black flex-grow"></span></div>
+          <div className="flex gap-2 leading-tight" style={{ marginLeft: '10px' }}><span className="font-bold w-36 shrink-0">Place of Supply.</span><span></span></div>
         </div>
       </div>
 
@@ -176,7 +176,8 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
           <p className="font-bold text-[12px]">{numberToWords(roundedTotal)}</p>
         </div>
         <div className="px-3 py-2 flex items-center">
-          <span className="font-black text-[15px] uppercase">Grand total = {formatCurrency(roundedTotal)}</span>
+          <span className="font-black text-[15px] uppercase">Grand total =</span>
+          <span className="font-black text-[15px] uppercase ml-auto text-right">{formatCurrency(roundedTotal)}</span>
         </div>
       </div>
 

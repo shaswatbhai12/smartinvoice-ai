@@ -1,23 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { InvoiceData, EMPTY_INVOICE } from './types';
+import { InvoiceData, EMPTY_INVOICE, VendorProfile } from './types';
 import InvoiceForm from './components/InvoiceForm';
 import InvoicePreview from './components/InvoicePreview';
-
-interface VendorProfile {
-  id: string;
-  vendorName: string;
-  vendorAddress: string;
-  vendorEmail: string;
-  vendorPhone: string;
-  vendorGstin: string;
-  pan: string;
-  bankName: string;
-  bankAccount: string;
-  bankIfsc: string;
-  dealsIn: string;
-  lastInvoiceNumber: number;
-}
+import { getCloudValue, isSupabaseConfigured, setCloudValue } from './services/cloudStorage';
 
 const EMPTY_PROFILE: Omit<VendorProfile, 'id'> = {
   vendorName: '',
@@ -115,26 +101,55 @@ const App: React.FC = () => {
   const [currentInvoice, setCurrentInvoice] = useState<InvoiceData>(EMPTY_INVOICE);
   const [history, setHistory] = useState<InvoiceData[]>([]);
 
-  // Load from localStorage
-  useEffect(() => {
-    const savedProfiles = localStorage.getItem('vendor_profiles');
-    const savedActiveId = localStorage.getItem('active_profile_id');
-    const savedHistory = localStorage.getItem('invoice_history');
-
-    const parsedProfiles: VendorProfile[] = savedProfiles ? JSON.parse(savedProfiles) : [];
-    setProfiles(parsedProfiles);
-    if (savedHistory) setHistory(JSON.parse(savedHistory));
-
-    if (parsedProfiles.length === 0) {
-      setView('profiles');
-      setShowProfileForm(true);
-    } else {
-      const active = savedActiveId && parsedProfiles.find(p => p.id === savedActiveId)
-        ? savedActiveId
-        : parsedProfiles[0].id;
-      setActiveProfileId(active);
-      applyProfile(parsedProfiles.find(p => p.id === active)!, parsedProfiles.find(p => p.id === active)!.lastInvoiceNumber);
+  const parseLocalJSON = <T,>(raw: string | null, fallback: T): T => {
+    if (!raw) return fallback;
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
     }
+  };
+
+  // Load from Supabase with localStorage fallback
+  useEffect(() => {
+    const load = async () => {
+      const localProfiles = parseLocalJSON<VendorProfile[]>(localStorage.getItem('vendor_profiles'), []);
+      const localHistory = parseLocalJSON<InvoiceData[]>(localStorage.getItem('invoice_history'), []);
+      const localActiveId = localStorage.getItem('active_profile_id');
+
+      let parsedProfiles = localProfiles;
+      let parsedHistory = localHistory;
+      let savedActiveId = localActiveId;
+
+      if (isSupabaseConfigured) {
+        const [cloudProfiles, cloudHistory, cloudActiveId] = await Promise.all([
+          getCloudValue<VendorProfile[]>('vendor_profiles'),
+          getCloudValue<InvoiceData[]>('invoice_history'),
+          getCloudValue<string>('active_profile_id'),
+        ]);
+
+        if (Array.isArray(cloudProfiles)) parsedProfiles = cloudProfiles;
+        if (Array.isArray(cloudHistory)) parsedHistory = cloudHistory;
+        if (typeof cloudActiveId === 'string') savedActiveId = cloudActiveId;
+      }
+
+      setProfiles(parsedProfiles);
+      setHistory(parsedHistory);
+
+      if (parsedProfiles.length === 0) {
+        setView('profiles');
+        setShowProfileForm(true);
+      } else {
+        const active = savedActiveId && parsedProfiles.find(p => p.id === savedActiveId)
+          ? savedActiveId
+          : parsedProfiles[0].id;
+        setActiveProfileId(active);
+        localStorage.setItem('active_profile_id', active);
+        applyProfile(parsedProfiles.find(p => p.id === active)!, parsedProfiles.find(p => p.id === active)!.lastInvoiceNumber);
+      }
+    };
+
+    void load();
   }, []);
 
   const GSTIN_STATE_MAP: Record<string, string> = {
@@ -178,11 +193,13 @@ const App: React.FC = () => {
   const saveProfiles = (updated: VendorProfile[]) => {
     setProfiles(updated);
     localStorage.setItem('vendor_profiles', JSON.stringify(updated));
+    if (isSupabaseConfigured) void setCloudValue('vendor_profiles', updated);
   };
 
   const persistHistory = (newHistory: InvoiceData[]) => {
     setHistory(newHistory);
     localStorage.setItem('invoice_history', JSON.stringify(newHistory));
+    if (isSupabaseConfigured) void setCloudValue('invoice_history', newHistory);
   };
 
   const activeProfile = profiles.find(p => p.id === activeProfileId);
@@ -192,6 +209,7 @@ const App: React.FC = () => {
     if (!profile) return;
     setActiveProfileId(id);
     localStorage.setItem('active_profile_id', id);
+    if (isSupabaseConfigured) void setCloudValue('active_profile_id', id);
     applyProfile(profile, profile.lastInvoiceNumber);
     setView('editor');
   };
@@ -208,6 +226,7 @@ const App: React.FC = () => {
       saveProfiles(updated);
       setActiveProfileId(newProfile.id);
       localStorage.setItem('active_profile_id', newProfile.id);
+      if (isSupabaseConfigured) void setCloudValue('active_profile_id', newProfile.id);
       applyProfile(newProfile, newProfile.lastInvoiceNumber);
     }
     setShowProfileForm(false);

@@ -49,6 +49,21 @@ export interface InvoiceData {
   currency: string;
 }
 
+export interface VendorProfile {
+  id: string;
+  vendorName: string;
+  vendorAddress: string;
+  vendorEmail: string;
+  vendorPhone: string;
+  vendorGstin: string;
+  pan: string;
+  bankName: string;
+  bankAccount: string;
+  bankIfsc: string;
+  dealsIn: string;
+  lastInvoiceNumber: number;
+}
+
 export interface AppState {
   history: InvoiceData[];
   currentInvoice: InvoiceData;

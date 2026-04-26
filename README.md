@@ -55,3 +55,52 @@ To use your own app icon:
 1. Replace `public/icons/icon.svg` with your design
 2. Run `node generate-icons.js` to generate all sizes
 3. Rebuild the app
+
+## 🗄️ Save Data in Supabase (Database)
+
+This app now supports saving profiles/history to Supabase.
+If Supabase keys are not set, it will automatically fall back to localStorage.
+
+### 1. Add environment variables
+
+Create `.env.local` with:
+
+```bash
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 2. Create table in Supabase SQL editor
+
+Run this SQL once:
+
+```sql
+create table if not exists public.app_storage (
+   key text primary key,
+   value jsonb not null,
+   updated_at timestamptz not null default now()
+);
+
+alter table public.app_storage enable row level security;
+
+create policy "Allow read app_storage"
+on public.app_storage
+for select
+to anon
+using (true);
+
+create policy "Allow write app_storage"
+on public.app_storage
+for insert
+to anon
+with check (true);
+
+create policy "Allow update app_storage"
+on public.app_storage
+for update
+to anon
+using (true)
+with check (true);
+```
+
+Note: For production, restrict policies to authenticated users and add auth.
